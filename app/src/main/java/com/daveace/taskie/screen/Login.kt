@@ -38,8 +38,8 @@ import com.daveace.taskie.ui.theme.dark
 import com.daveace.taskie.ui.theme.light
 
 
-val vSpace = 20.dp
-val radius = 10.dp
+private val vSpace = 20.dp
+private val radius = 10.dp
 
 @Composable
 fun LoginScreen(modifier: Modifier = Modifier) {
