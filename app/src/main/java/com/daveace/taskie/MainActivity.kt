@@ -9,7 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.daveace.taskie.screen.SplashScreen
+import com.daveace.taskie.screen.LoginScreen
 import com.daveace.taskie.ui.theme.TaskieTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TaskieTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-
+                    LoginScreen(modifier = Modifier)
                 }
             }
         }
@@ -28,8 +28,8 @@ class MainActivity : ComponentActivity() {
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun Preview() {
     TaskieTheme {
-        SplashScreen(modifier=Modifier)
+        LoginScreen(modifier = Modifier)
     }
 }
