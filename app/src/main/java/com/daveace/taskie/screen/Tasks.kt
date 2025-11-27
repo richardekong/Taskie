@@ -119,7 +119,7 @@ fun Header(modifier: Modifier = Modifier, onResultClick: (text: String) -> Unit 
                 .fillMaxWidth()
                 .padding(16.dp)
                 .align(alignment = Alignment.CenterHorizontally),
-            color = if (isSystemInDarkTheme()) light else dark
+            color = light
         )
         SearchBar(
             modifier = modifier.padding(16.dp),
