@@ -13,4 +13,18 @@
     <string name="search_task_by_title">Search Task by title</string>
     <string name="more">More</string>
     <string name="delete">Delete</string>
+    <string name="schedule_a_new_task">Schedule a new task</string>
+    <string name="describe_your_task">Describe your task</string>
+    <string name="status">Status</string>
+    <string name="title">Title</string>
+    <string name="title_icon">title icon</string>
+    <string name="select_date">Select Date</string>
+    <string name="date">Date</string>
+    <string name="select_date_and_time">select date and time</string>
+    <string name="select_time">Select time</string>
+    <string name="time">Time</string>
+    <string name="create_task">Create Task</string>
+    <string name="modify_task">Modify Task</string>
+    <string name="task_date_and_time">Task date and time</string>
+    <string name="modify_this_task">Modify this task</string>
 </resources>

@@ -2,4 +2,19 @@
 <resources>
 
     <style name="Theme.Taskie" parent="android:Theme.Material.Light.NoActionBar" />
+
+
+    <style name="TaskieDateTimePickerTheme" parent="Theme.MaterialComponents.Light.Dialog.Alert">
+        <item name="colorAccent">@color/black</item>
+        <item name="android:background">@color/white</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:datePickerStyle">@style/TaskieDatePickerStyle</item>
+    </style>
+
+    <style name="TaskieDatePickerStyle" parent="android:Widget.Material.DatePicker">
+        <item name="android:headerBackground">@color/black</item>
+        <item name="android:calendarTextColor">@color/black</item>
+        <item name="android:calendarViewShown">true</item>
+    </style>
+
 </resources>
