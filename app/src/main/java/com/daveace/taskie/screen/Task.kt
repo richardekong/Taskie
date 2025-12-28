@@ -27,7 +27,7 @@ import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TaskScreen(modifier: Modifier, task: Task = tasks[0]) {
+fun TaskScreen(modifier: Modifier = Modifier, task: Task = tasks[0]) {
 
     val cardElevation: CardElevation = CardDefaults.cardElevation(8.dp)
     Column(

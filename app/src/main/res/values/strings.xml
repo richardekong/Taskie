@@ -10,6 +10,7 @@
     <string name="already_have_an_account">Already have an account?</string>
     <string name="sign_up">Sign Up</string>
     <string name="manage_your_task">Manage your Task</string>
+    <string name="tasks">Tasks</string>
     <string name="search_task_by_title">Search Task by title</string>
     <string name="more">More</string>
     <string name="delete">Delete</string>

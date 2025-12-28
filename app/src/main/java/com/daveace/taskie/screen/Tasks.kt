@@ -61,7 +61,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.daveace.taskie.R
+import com.daveace.taskie.nav.NavRoutes
 import com.daveace.taskie.ui.theme.crimson
 import com.daveace.taskie.ui.theme.dark
 import com.daveace.taskie.ui.theme.green
@@ -74,7 +77,10 @@ private val space = 20.dp
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun TasksScreen(modifier: Modifier = Modifier) {
+fun TasksScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController = rememberNavController()
+) {
 
 
     val listState = rememberLazyListState()
@@ -94,7 +100,7 @@ fun TasksScreen(modifier: Modifier = Modifier) {
     ) {
         Header(modifier, onResultClick)
         Spacer(modifier.height(space))
-        Main(modifier, listState)
+        Main(modifier, listState, navController)
     }
 }
 
@@ -114,7 +120,7 @@ fun Header(modifier: Modifier = Modifier, onResultClick: (text: String) -> Unit 
             .background(color = dark, shape = RoundedCornerShape(10.dp))
     ) {
         Text(
-            text = stringResource(R.string.manage_your_task),
+            text = stringResource(R.string.tasks),
             style = MaterialTheme.typography.titleMedium,
             modifier = modifier
                 .fillMaxWidth()
@@ -187,7 +193,7 @@ fun Header(modifier: Modifier = Modifier, onResultClick: (text: String) -> Unit 
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun Main(modifier: Modifier = Modifier, listState: LazyListState = rememberLazyListState()) {
+fun Main(modifier: Modifier = Modifier, listState: LazyListState = rememberLazyListState(), navController: NavController) {
     Box {
         LazyColumn(
             contentPadding = PaddingValues(start = 16.dp, top = 72.dp, end = 16.dp, bottom = 16.dp),
@@ -223,7 +229,9 @@ fun Main(modifier: Modifier = Modifier, listState: LazyListState = rememberLazyL
                                 containerColor = green, contentColor = light
                             ),
                             elevation = ButtonDefaults.buttonElevation(4.dp),
-                            onClick = {}) {
+                            onClick = {
+                                navController.navigate(NavRoutes.Details.routes)
+                            }) {
                             Text(
                                 text = stringResource(R.string.more),
                                 fontSize = 12.sp,
@@ -250,7 +258,9 @@ fun Main(modifier: Modifier = Modifier, listState: LazyListState = rememberLazyL
             }
         }
         FloatingActionButton(
-            onClick = {},
+            onClick = {
+                navController.navigate(NavRoutes.New.routes)
+            },
             modifier = modifier
                 .align(alignment = Alignment.BottomEnd),
             containerColor = if (isSystemInDarkTheme()) light else dark,

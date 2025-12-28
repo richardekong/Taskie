@@ -11,11 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.daveace.taskie.screen.CreateTaskScreen
-import com.daveace.taskie.screen.ModifyTaskScreen
-import com.daveace.taskie.screen.SignUpScreen
-import com.daveace.taskie.screen.TaskScreen
-import com.daveace.taskie.screen.TasksScreen
+import com.daveace.taskie.screen.MainScreen
 import com.daveace.taskie.ui.theme.TaskieTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,12 +22,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TaskieTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    SignUpScreen(modifier = Modifier)
-//                    TasksScreen(modifier = Modifier)
-//                    TaskScreen(modifier = Modifier)
-//                    CreateTaskScreen(modifier = Modifier)
-                    ModifyTaskScreen(modifier = Modifier)
-
+                    MainScreen(modifier = Modifier)
                 }
             }
         }
@@ -43,11 +34,7 @@ class MainActivity : ComponentActivity() {
 @RequiresApi(Build.VERSION_CODES.O)
 fun Preview() {
     TaskieTheme {
-//        SignUpScreen(modifier = Modifier)
-//        TasksScreen(modifier = Modifier)
-//        TaskScreen(modifier = Modifier)
-//        CreateTaskScreen(modifier = Modifier)
-        ModifyTaskScreen(modifier = Modifier)
-
+        MainScreen(modifier = Modifier)
     }
 }
+
