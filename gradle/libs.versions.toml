@@ -10,6 +10,8 @@ activityCompose = "1.12.0"
 composeBom = "2024.09.00"
 foundation = "1.9.5"
 navigationCompose = "2.7.7"
+squareupRetrofit = "2.11.0"
+squareupOkhttp3LoggingInterceptor = "4.12.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -28,8 +30,9 @@ androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-te
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
-
-
+retrofit = {module = "com.squareup.retrofit2:retrofit", version.ref = "squareupRetrofit"}
+retrofit-gson = {module ="com.squareup.retrofit2:converter-gson", version.ref = "squareupRetrofit"}
+squareup-okhttp3-logging-interceptor = {module ="com.squareup.okhttp3:logging-interceptor", version.ref = "squareupOkhttp3LoggingInterceptor"}
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

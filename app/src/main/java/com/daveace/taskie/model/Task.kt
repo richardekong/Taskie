@@ -2,6 +2,7 @@ package com.daveace.taskie.model
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.daveace.taskie.api.Task
 import java.time.LocalDateTime
 
 @RequiresApi(Build.VERSION_CODES.O)
