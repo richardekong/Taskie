@@ -8,7 +8,7 @@ import retrofit2.http.*
 interface TaskService {
 
     @POST("/api/tasks")
-    suspend fun createTask(@Body task:Task)
+    suspend fun createTask(@Body task:Task): Response<Unit>
 
     @GET("/api/tasks")
     suspend fun readTasks(): Response<Tasks>
@@ -20,16 +20,16 @@ interface TaskService {
     suspend fun readTask(@Path("id") id:Long): Response<Task>
 
     @GET("/api/tasks/search-title")
-    suspend fun readTaskByTitle(@Query("title")title:String):Response<Tasks>
+    suspend fun readTasksByTitle(@Query("title")title:String):Response<Tasks>
 
     @GET("/api/tasks/search-status")
-    suspend fun readTaskByStatus(@Query("status")status:String):Response<Tasks>
+    suspend fun readTasksByStatus(@Query("status")status:String):Response<Tasks>
 
     @PUT("/api/tasks/{id}")
-    suspend fun updateTask(@Path("id")id:Long, @Body task: Task)
+    suspend fun updateTask(@Path("id")id:Long, @Body task: Task):Response<Unit>
 
     @DELETE("/api/tasks/{id}")
-    suspend fun deleteTask(@Path("id") id:Long)
+    suspend fun deleteTask(@Path("id") id:Long):Response<Unit>
 
 }
 
