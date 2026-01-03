@@ -1,4 +1,4 @@
-package com.daveace.taskie.api
+package com.daveace.taskie.api.model
 
 data class Pageable(
     val offset: Int,
@@ -8,3 +8,4 @@ data class Pageable(
     val sort: SortX,
     val unpaged: Boolean
 )
+

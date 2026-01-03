@@ -1,5 +1,6 @@
-package com.daveace.taskie.api
+package com.daveace.taskie.api.model
 
+import com.daveace.taskie.api.model.Pageable
 import com.google.gson.annotations.SerializedName
 
 data class Tasks(
@@ -16,3 +17,4 @@ data class Tasks(
     val totalElements: Int,
     val totalPages: Int
 )
+

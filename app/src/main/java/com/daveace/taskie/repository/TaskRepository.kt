@@ -1,16 +1,16 @@
 package com.daveace.taskie.repository
 
-import com.daveace.taskie.api.Task
-import com.daveace.taskie.api.TaskService
-import com.daveace.taskie.api.Tasks
+import com.daveace.taskie.api.model.Task
+import com.daveace.taskie.api.service.TaskService
+import com.daveace.taskie.api.model.Tasks
 
 class TaskRepository(private val service: TaskService) {
 
-    suspend fun createTask(task: Task): Result<Boolean> {
+    suspend fun createTask(task: Task): Result<String> {
         return try {
             val response = service.createTask(task)
             if (response.isSuccessful)
-                Result.success(true)
+                Result.success("${response.code()}: Task created!")
             else
                 Result.failure(Exception("${response.code()}: ${response.message()}"))
         } catch (e: Exception) {
@@ -81,11 +81,11 @@ class TaskRepository(private val service: TaskService) {
         }
     }
 
-    suspend fun updateTask(id: Long, task: Task): Result<Boolean> {
+    suspend fun updateTask(id: Long, task: Task): Result<String> {
         return try {
             val response = service.updateTask(id, task)
             if (response.isSuccessful)
-                Result.success(true)
+                Result.success("${response.code()}: Task updated!")
             else
                 Result.failure(Exception("${response.code()}: ${response.message()}"))
         } catch (e: Exception) {
@@ -93,11 +93,11 @@ class TaskRepository(private val service: TaskService) {
         }
     }
 
-    suspend fun deleteTask(id: Long): Result<Boolean> {
+    suspend fun deleteTask(id: Long): Result<String> {
         return try {
             val response = service.deleteTask(id)
             if (response.isSuccessful)
-                Result.success(true)
+                Result.success("${response.code()}: Task deleted!")
             else
                 Result.failure(Exception("${response.code()}: ${response.message()}"))
         } catch (e: Exception) {

@@ -1,10 +1,10 @@
-package com.daveace.taskie.api
+package com.daveace.taskie.api.net
 
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
 
 class RetrofitInstance {
@@ -31,3 +31,4 @@ class RetrofitInstance {
         }
     }
 }
+

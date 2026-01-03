@@ -1,4 +1,4 @@
-package com.daveace.taskie.api
+package com.daveace.taskie.api.model
 
 data class Task(
     val description: String,
@@ -7,3 +7,4 @@ data class Task(
     val status: String,
     val title: String
 )
+
