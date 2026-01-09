@@ -3,8 +3,9 @@ package com.daveace.taskie.repository
 import com.daveace.taskie.api.model.Task
 import com.daveace.taskie.api.service.TaskService
 import com.daveace.taskie.api.model.Tasks
+import javax.inject.Inject
 
-class TaskRepository(private val service: TaskService) {
+class TaskRepository @Inject constructor(private val service: TaskService) {
 
     suspend fun createTask(task: Task): Result<String> {
         return try {

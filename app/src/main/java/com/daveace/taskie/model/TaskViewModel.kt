@@ -1,17 +1,21 @@
 package com.daveace.taskie.model
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daveace.taskie.api.model.Task
 import com.daveace.taskie.api.model.Tasks
 import com.daveace.taskie.repository.TaskRepository
 import com.daveace.taskie.state.UIState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TaskViewModel(private val taskRepository: TaskRepository) : ViewModel() {
+@HiltViewModel
+class TaskViewModel @Inject constructor(private val taskRepository: TaskRepository, context: Context) : ViewModel() {
     private val _createdTaskState = MutableStateFlow<UIState<String>>(UIState.Idle)
     val createdTaskState: StateFlow<UIState<String>> = _createdTaskState.asStateFlow()
     private val _fetchedTaskState = MutableStateFlow<UIState<Task?>>(UIState.Idle)
