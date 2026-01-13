@@ -59,6 +59,8 @@ dependencies {
     implementation(libs.retrofit.gson)
     implementation(libs.squareup.okhttp3.logging.interceptor)
     implementation(libs.dagger.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.foundation)
     kapt(libs.dagger.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

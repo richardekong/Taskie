@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TaskViewModel @Inject constructor(private val taskRepository: TaskRepository, context: Context) : ViewModel() {
+class TaskViewModel @Inject constructor(private val taskRepository: TaskRepository) : ViewModel() {
     private val _createdTaskState = MutableStateFlow<UIState<String>>(UIState.Idle)
     val createdTaskState: StateFlow<UIState<String>> = _createdTaskState.asStateFlow()
     private val _fetchedTaskState = MutableStateFlow<UIState<Task?>>(UIState.Idle)
