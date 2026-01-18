@@ -32,6 +32,6 @@
     <string name="loading">Loading ...</string>
     <string name="pages">Pages</string>
     <string name="taskie_snackbar_icon">Taskie snackbar icon</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="close">Close</string>
 </resources>

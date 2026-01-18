@@ -62,7 +62,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.daveace.taskie.R
@@ -85,10 +84,10 @@ import kotlinx.coroutines.launch
 fun TasksScreen(
     modifier: Modifier = Modifier,
     snackbarController: TaskieSnackbarController,
-    navController: NavController = rememberNavController()
+    navController: NavController = rememberNavController(),
+    taskViewModel: TaskViewModel
 ) {
 
-    val taskViewModel: TaskViewModel = hiltViewModel()
     val fetchedTasksState by taskViewModel.fetchedTasksState.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -114,12 +113,14 @@ fun TasksScreen(
                 TasksSearchBar(fetchedTasks = fetchedTasks, onResultClick = onResultClick)
                 Main(
                     navController = navController,
+                    taskViewModel = taskViewModel,
                     snackbarController = snackbarController,
                     tasks = fetchedTasks
                 )
                 PaginationBar(
                     tasksState = fetchedTasksState,
-                    snackbarController = snackbarController
+                    snackbarController = snackbarController,
+                    taskViewModel = taskViewModel
                 )
             }
 
@@ -127,7 +128,7 @@ fun TasksScreen(
 
         is UIState.Error -> {
             val message = (fetchedTasksState as UIState.Error).message
-            ErrorScreen(modifier, message)
+            ErrorScreen(modifier = modifier, errorMessage = message)
         }
 
         else -> {}
@@ -164,6 +165,7 @@ fun Header(modifier: Modifier = Modifier) {
 fun ColumnScope.Main(
     modifier: Modifier = Modifier,
     navController: NavController,
+    taskViewModel: TaskViewModel,
     snackbarController: TaskieSnackbarController,
     tasks: List<Task>
 ) {
@@ -173,7 +175,13 @@ fun ColumnScope.Main(
             .fillMaxSize()
             .weight(1F)
     ) {
-        TaskItems(modifier, navController, snackbarController, tasks)
+        TaskItems(
+            modifier = modifier,
+            navController = navController,
+            taskViewModel = taskViewModel,
+            snackbarController = snackbarController,
+            tasks = tasks
+        )
         FloatingActionButton(
             onClick = {
                 navController.navigate(NavRoutes.New.routes)
@@ -199,10 +207,10 @@ fun TaskItems(
     modifier: Modifier = Modifier,
     navController: NavController,
     snackbarController: TaskieSnackbarController,
+    taskViewModel: TaskViewModel,
     tasks: List<Task>
 ) {
     val listState = rememberLazyListState()
-    val taskViewModel: TaskViewModel = hiltViewModel()
     LazyColumn(
         contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -240,7 +248,8 @@ fun TaskItems(
                         ),
                         elevation = ButtonDefaults.buttonElevation(4.dp),
                         onClick = {
-                            navController.navigate("${NavRoutes.Details.routes}/${it.id}")
+                            taskViewModel.setSelectedId(it.id)
+                            navController.navigate(NavRoutes.Details.routes)
                         }) {
                         Text(
                             text = stringResource(R.string.more),
@@ -260,8 +269,8 @@ fun TaskItems(
                             val data = TaskieSnackbarData(
                                 message = "Are you sure?",
                                 iconResourceId = R.drawable.question_mark_24,
-                                actionLabel = "Yes",
-                                negativeActionLabel = "No",
+                                actionLabel = "YES",
+                                negativeActionLabel = "NO",
                                 onActionClick = {
                                     // Delete the current item
                                     taskViewModel.deleteTask(it.id)
@@ -269,11 +278,14 @@ fun TaskItems(
                                     snackbarController.dismiss()
                                 },
                                 onDismiss = {
-                                    // Dismiss snackbar on selecting "No"
+                                    // Dismiss snackbar on selecting "NO"
                                     snackbarController.dismiss()
                                 }
                             )
-                            snackbarController.showSnackbar(data = data, duration = SnackbarDuration.Indefinite)
+                            snackbarController.showSnackbar(
+                                data = data,
+                                duration = SnackbarDuration.Indefinite
+                            )
                         }) {
                         Text(
                             text = stringResource(R.string.delete),

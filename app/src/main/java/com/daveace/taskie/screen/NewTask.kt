@@ -1,6 +1,5 @@
 package com.daveace.taskie.screen
 
-import DateTimePickerTextField
 import DateTimePickerTextFields
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -26,8 +25,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,20 +40,68 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.daveace.taskie.R
+import com.daveace.taskie.api.model.Task
+import com.daveace.taskie.componentUtils.TaskieSnackbarController
+import com.daveace.taskie.componentUtils.TaskieSnackbarData
 import com.daveace.taskie.model.Status
+import com.daveace.taskie.model.TaskViewModel
+import com.daveace.taskie.state.UIState
 import com.daveace.taskie.ui.theme.dark
-import java.time.LocalDateTime
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun CreateTaskScreen(modifier: Modifier = Modifier) {
+fun CreateTaskScreen(
+    modifier: Modifier = Modifier,
+    taskViewModel: TaskViewModel,
+    snackbarController: TaskieSnackbarController
+) {
 
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var status by remember { mutableStateOf("") }
-    var dueDateTime by remember { mutableStateOf(LocalDateTime.now()) }
+    val createdTaskState by taskViewModel.createdTaskState.collectAsState()
+
+    when (createdTaskState) {
+
+        is UIState.Idle -> TaskForm(modifier = modifier, taskViewModel = taskViewModel)
+        is UIState.Success -> {
+            TaskForm(modifier = modifier, taskViewModel = taskViewModel)
+            // notify user by snackbar:
+            snackbarController.showSnackbar(
+                data = TaskieSnackbarData(
+                    iconResourceId = R.drawable.info_24,
+                    message = (createdTaskState as UIState.Success<String>).data,
+                    actionLabel = stringResource(R.string.ok),
+                    onDismiss = {
+                        taskViewModel.resetCreatedTaskState()
+                        snackbarController.dismiss()
+                    }),
+                duration = SnackbarDuration.Indefinite
+            )
+        }
+
+        is UIState.Error -> {
+            // notify user by error page:
+            ErrorScreen(
+                modifier = Modifier,
+                errorMessage = (createdTaskState as UIState.Error).message,
+                onDismiss = {
+                    taskViewModel.resetCreatedTaskState()
+                }
+            )
+        }
+
+        else -> {
+            // other if state is loading, empty or idle:
+            LoadingScreen()
+        }
+    }
+}
+
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun TaskForm(modifier: Modifier, taskViewModel: TaskViewModel) {
+
     var expanded by remember { mutableStateOf(false) }
     val statusOptions: List<String> = Status.entries.map { it.label }
     val radius = 10.dp
@@ -68,26 +117,27 @@ fun CreateTaskScreen(modifier: Modifier = Modifier) {
 
         Text(
             text = stringResource(R.string.schedule_a_new_task),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(4.dp)
         )
 
         Card(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .border(width = 1.dp, color = dark, shape = RoundedCornerShape(radius)),
             elevation = CardDefaults.cardElevation(4.dp)
         ) {
 
             Column(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
 
                 OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
+                    value = taskViewModel.title,
+                    onValueChange = taskViewModel::onTitleChange,
                     label = { Text(stringResource(R.string.title)) },
                     singleLine = true,
                     shape = RoundedCornerShape(radius),
@@ -95,19 +145,19 @@ fun CreateTaskScreen(modifier: Modifier = Modifier) {
                         Icon(
                             painter = painterResource(R.drawable.title),
                             contentDescription = stringResource(R.string.title_icon),
-                            modifier = modifier
+                            modifier = Modifier
                         )
                     },
-                    modifier = modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
+                    value = taskViewModel.description,
+                    onValueChange = taskViewModel::onDescriptionChange,
                     label = { Text(stringResource(R.string.describe_your_task)) },
                     singleLine = false,
                     shape = RoundedCornerShape(radius),
-                    modifier = modifier
+                    modifier = Modifier
                         .fillMaxWidth()
                         .height(300.dp)
                         .verticalScroll(rememberScrollState())
@@ -119,8 +169,8 @@ fun CreateTaskScreen(modifier: Modifier = Modifier) {
                 ) {
 
                     OutlinedTextField(
-                        value = status,
-                        onValueChange = { status = it },
+                        value = taskViewModel.status,
+                        onValueChange = taskViewModel::onStatusChange,
                         label = { Text(stringResource(R.string.status)) },
                         singleLine = true,
                         readOnly = true,
@@ -128,7 +178,7 @@ fun CreateTaskScreen(modifier: Modifier = Modifier) {
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
-                        modifier = modifier
+                        modifier = Modifier
                             .menuAnchor(
                                 type = MenuAnchorType.PrimaryEditable,
                                 enabled = true
@@ -144,7 +194,7 @@ fun CreateTaskScreen(modifier: Modifier = Modifier) {
                             DropdownMenuItem(
                                 text = { Text(it) },
                                 onClick = {
-                                    status = it
+                                    taskViewModel.onStatusChange(it)
                                     expanded = false
                                 }
                             )
@@ -152,20 +202,31 @@ fun CreateTaskScreen(modifier: Modifier = Modifier) {
                     }
                 }
 
-                DateTimePickerTextFields(modifier = modifier.fillMaxWidth(), dueDateTime) { dateTime ->
-                    dueDateTime = dateTime
-                }
-
+                DateTimePickerTextFields(
+                    modifier = Modifier.fillMaxWidth(),
+                    initialDateTime = taskViewModel.dueDateTime,
+                    onDateTimeSelected = taskViewModel::onDueDateTimeChange
+                )
             }
         }
 
         Button(
-            modifier = modifier
+            modifier = Modifier
                 .padding(8.dp)
                 .align(alignment = Alignment.Start),
             elevation = ButtonDefaults.buttonElevation(4.dp),
             shape = RoundedCornerShape(radius),
-            onClick = {}) {
+            onClick = {
+                // Create task object from user inputs:
+                val newTask = Task(
+                    title = taskViewModel.title,
+                    description = taskViewModel.description,
+                    status = taskViewModel.status,
+                    dueDateTime = taskViewModel.dueDateTime.toString()
+                )
+                // Pass the task to the repository via the view model
+                taskViewModel.createTask(newTask)
+            }) {
             Text(
                 text = stringResource(R.string.create_task),
                 fontWeight = FontWeight.Bold,
@@ -173,6 +234,5 @@ fun CreateTaskScreen(modifier: Modifier = Modifier) {
             )
         }
     }
-
 }
 

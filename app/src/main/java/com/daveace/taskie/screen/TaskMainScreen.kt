@@ -2,7 +2,6 @@ package com.daveace.taskie.screen
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,16 +20,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -38,10 +34,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.daveace.taskie.R
 import com.daveace.taskie.componentUtils.TaskieSnackbar
-import com.daveace.taskie.componentUtils.TaskieSnackbarContent
 import com.daveace.taskie.componentUtils.TaskieSnackbarController
-import com.daveace.taskie.componentUtils.TaskieSnackbarData
-//import com.daveace.taskie.componentUtils.TaskieSnackbarContent
+import com.daveace.taskie.model.TaskViewModel
 import com.daveace.taskie.nav.NavBarItems
 import com.daveace.taskie.nav.NavRoutes
 
@@ -49,7 +43,7 @@ import com.daveace.taskie.nav.NavRoutes
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(modifier: Modifier = Modifier, taskViewModel: TaskViewModel) {
 
     val navController = rememberNavController()
     val snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
@@ -57,7 +51,6 @@ fun MainScreen(modifier: Modifier = Modifier) {
     val snackbarController = remember(snackbarHostState, scope) {
         TaskieSnackbarController(snackbarHostState, scope)
     }
-    var taskieSnackbarData by remember { mutableStateOf<TaskieSnackbarData?>(null) }
     val currentRoute = navController
         .currentBackStackEntryAsState()
         .value
@@ -97,7 +90,11 @@ fun MainScreen(modifier: Modifier = Modifier) {
         },
         content = { padding ->
             Column(Modifier.padding(padding)) {
-                NavigationHost(navController = navController, snackbarController = snackbarController)
+                NavigationHost(
+                    navController = navController,
+                    taskViewModel = taskViewModel,
+                    snackbarController = snackbarController
+                )
             }
         },
         bottomBar = {
@@ -109,8 +106,8 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 snackbar = {
                     snackbarController
                         .taskieSnackbarData?.let { data ->
-                        TaskieSnackbar(data = data)
-                    }
+                            TaskieSnackbar(data = data)
+                        }
                 })
         }
     )
@@ -118,22 +115,41 @@ fun MainScreen(modifier: Modifier = Modifier) {
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun NavigationHost(navController: NavHostController, snackbarController: TaskieSnackbarController) {
+fun NavigationHost(
+    navController: NavHostController,
+    taskViewModel: TaskViewModel,
+    snackbarController: TaskieSnackbarController
+) {
+
     NavHost(
         navController = navController,
         startDestination = NavRoutes.Tasks.routes
     ) {
         composable(NavRoutes.New.routes) {
-            CreateTaskScreen()
+            CreateTaskScreen(
+                taskViewModel = taskViewModel,
+                snackbarController = snackbarController,
+            )
         }
-        composable("${NavRoutes.Details.routes}/{id}") {
-            TaskScreen()
+        composable(NavRoutes.Details.routes) {
+            TaskScreen(
+                navController = navController,
+                snackbarController = snackbarController,
+                taskViewModel = taskViewModel
+            )
         }
         composable(NavRoutes.Edit.routes) {
-            ModifyTaskScreen()
+            ModifyTaskScreen(
+                taskViewModel = taskViewModel,
+                snackbarController = snackbarController
+            )
         }
         composable(NavRoutes.Tasks.routes) {
-            TasksScreen(navController = navController, snackbarController = snackbarController)
+            TasksScreen(
+                navController = navController,
+                taskViewModel = taskViewModel,
+                snackbarController = snackbarController
+            )
         }
     }
 }
@@ -142,14 +158,14 @@ fun NavigationHost(navController: NavHostController, snackbarController: TaskieS
 fun BottomNavigationBar(navController: NavHostController) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    if (currentRoute != NavRoutes.Tasks.routes) {
+    if (currentRoute != NavRoutes.Tasks.routes && currentRoute != NavRoutes.New.routes) {
         NavigationBar {
             NavBarItems.BarItems.forEach { navItem ->
                 NavigationBarItem(
                     selected = currentRoute == navItem.route,
                     onClick = {
                         navController.navigate(navItem.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
+                            popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
                             }
                             launchSingleTop = true

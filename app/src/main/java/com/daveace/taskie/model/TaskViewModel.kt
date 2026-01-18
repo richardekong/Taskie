@@ -1,6 +1,8 @@
 package com.daveace.taskie.model
 
-import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daveace.taskie.api.model.Task
@@ -12,26 +14,52 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
 class TaskViewModel @Inject constructor(private val taskRepository: TaskRepository) : ViewModel() {
+
+    var title by mutableStateOf("")
+        private set
+    var description by mutableStateOf("")
+        private set
+    var status by mutableStateOf("")
+        private set
+    var dueDateTime by mutableStateOf<LocalDateTime>(LocalDateTime.now())
+        private set
     private val _createdTaskState = MutableStateFlow<UIState<String>>(UIState.Idle)
     val createdTaskState: StateFlow<UIState<String>> = _createdTaskState.asStateFlow()
     private val _fetchedTaskState = MutableStateFlow<UIState<Task?>>(UIState.Idle)
     val fetchedTaskState: StateFlow<UIState<Task?>> = _fetchedTaskState.asStateFlow()
+
+    var selectedTaskId by mutableStateOf<Long?>(null)
+        private set
+
     private val _fetchedTasksState = MutableStateFlow<UIState<Tasks?>>(UIState.Loading)
     val fetchedTasksState: StateFlow<UIState<Tasks?>> = _fetchedTasksState.asStateFlow()
 
     private val _updatedTaskState = MutableStateFlow<UIState<String>>(UIState.Idle)
-    val updatedTaskState : StateFlow<UIState<String>> = _updatedTaskState.asStateFlow()
+    val updatedTaskState: StateFlow<UIState<String>> = _updatedTaskState.asStateFlow()
 
     private val _deletedTaskState = MutableStateFlow<UIState<String>>(UIState.Idle)
-    val deletedTaskState : StateFlow<UIState<String>> = _deletedTaskState.asStateFlow()
+    val deletedTaskState: StateFlow<UIState<String>> = _deletedTaskState.asStateFlow()
 
     init {
         readTasks()
     }
+
+    fun setSelectedId(id: Long?) {
+        selectedTaskId = id
+    }
+
+    fun onTitleChange(value:String){ title = value}
+
+    fun onDescriptionChange(value:String){description = value}
+
+    fun onStatusChange(value:String){status = value}
+
+    fun onDueDateTimeChange(value:LocalDateTime) {dueDateTime = value}
 
     fun createTask(task: Task) {
         viewModelScope.launch {
@@ -58,12 +86,13 @@ class TaskViewModel @Inject constructor(private val taskRepository: TaskReposito
             results.onSuccess { tasks ->
                 _fetchedTasksState.value = UIState.Success(tasks)
             }.onFailure { error ->
-                _fetchedTasksState.value = UIState.Error(error.message ?: "Failed to retrieve task!")
+                _fetchedTasksState.value =
+                    UIState.Error(error.message ?: "Failed to retrieve task!")
             }
         }
     }
 
-    fun readTaskById(id: Long){
+    fun readTaskById(id: Long) {
         viewModelScope.launch {
             _fetchedTaskState.value = UIState.Loading
             taskRepository.readTaskById(id)
@@ -71,38 +100,41 @@ class TaskViewModel @Inject constructor(private val taskRepository: TaskReposito
                     _fetchedTaskState.value = UIState.Success(task)
                 }
                 .onFailure { error ->
-                    _fetchedTaskState.value = UIState.Error(error.message ?: "Failed to retrieve Task!")
+                    _fetchedTaskState.value =
+                        UIState.Error(error.message ?: "Failed to retrieve Task!")
                 }
         }
     }
 
-    fun readTasksByTitle(title:String){
+    fun readTasksByTitle(title: String) {
         viewModelScope.launch {
             _fetchedTasksState.value = UIState.Loading
             taskRepository.readTasksByTitle(title)
                 .onSuccess { tasks ->
                     _fetchedTasksState.value = UIState.Success(tasks)
                 }
-                .onFailure {  error ->
-                    _fetchedTasksState.value = UIState.Error(error.message?:"Failed to retrieve Tasks!")
+                .onFailure { error ->
+                    _fetchedTasksState.value =
+                        UIState.Error(error.message ?: "Failed to retrieve Tasks!")
                 }
         }
     }
 
-    fun readTasksByStatus(status:String){
+    fun readTasksByStatus(status: String) {
         viewModelScope.launch {
             _fetchedTasksState.value = UIState.Loading
             taskRepository.readTasksByStatus(status)
                 .onSuccess { tasks ->
                     _fetchedTasksState.value = UIState.Success(tasks)
                 }
-                .onFailure {  error ->
-                    _fetchedTasksState.value = UIState.Error(error.message?:"Failed to retrieve Tasks!")
+                .onFailure { error ->
+                    _fetchedTasksState.value =
+                        UIState.Error(error.message ?: "Failed to retrieve Tasks!")
                 }
         }
     }
 
-    fun updateTask(id:Long, task:Task){
+    fun updateTask(id: Long, task: Task) {
         viewModelScope.launch {
             _updatedTaskState.value = UIState.Idle
             taskRepository.updateTask(id, task)
@@ -111,12 +143,12 @@ class TaskViewModel @Inject constructor(private val taskRepository: TaskReposito
                     readTasks()
                 }
                 .onFailure {
-                    _updatedTaskState.value = UIState.Error(it.message?:"Failed to update task!")
+                    _updatedTaskState.value = UIState.Error(it.message ?: "Failed to update task!")
                 }
         }
     }
 
-    fun deleteTask(id:Long){
+    fun deleteTask(id: Long) {
         viewModelScope.launch {
             _deletedTaskState.value = UIState.Idle
             taskRepository.deleteTask(id)
@@ -124,10 +156,31 @@ class TaskViewModel @Inject constructor(private val taskRepository: TaskReposito
                     _deletedTaskState.value = UIState.Success(it)
                     readTasks()
                 }
-                .onFailure{
-                    _deletedTaskState.value = UIState.Error(it.message?:"Failed to delete task!")
+                .onFailure {
+                    _deletedTaskState.value = UIState.Error(it.message ?: "Failed to delete task!")
                 }
         }
     }
+
+    fun resetCreatedTaskState() {
+        _createdTaskState.value = UIState.Idle
+    }
+
+    fun resetFetchedTasksState() {
+        _fetchedTasksState.value = UIState.Idle
+    }
+
+    fun resetFetchedTaskState() {
+        _fetchedTaskState.value = UIState.Empty
+    }
+
+    fun resetUpdateTaskState() {
+        _updatedTaskState.value = UIState.Idle
+    }
+
+    fun resetDeleteTaskState() {
+        _deletedTaskState.value = UIState.Idle
+    }
+
 }
 

@@ -1,6 +1,7 @@
 package com.daveace.taskie.screen
 
 import DateTimePickerTextFields
+import android.annotation.SuppressLint
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -26,8 +27,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,31 +42,107 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.daveace.taskie.R
+import com.daveace.taskie.api.model.Task
+import com.daveace.taskie.componentUtils.TaskieSnackbarController
+import com.daveace.taskie.componentUtils.TaskieSnackbarData
 import com.daveace.taskie.model.Status
-import com.daveace.taskie.model.Task
+import com.daveace.taskie.model.TaskViewModel
+import com.daveace.taskie.state.UIState
 import com.daveace.taskie.ui.theme.dark
-import tasks
-import java.time.format.DateTimeFormatter
+import java.time.LocalDateTime
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun ModifyTaskScreen(
+    modifier: Modifier = Modifier,
+    taskViewModel: TaskViewModel,
+    snackbarController: TaskieSnackbarController,
+) {
 
+    val fetchedTaskState by taskViewModel.fetchedTaskState.collectAsState()
+
+    when (fetchedTaskState) {
+
+        is UIState.Success -> {
+            val taskToModify: Task? = (fetchedTaskState as UIState.Success<Task?>).data
+            if (taskToModify != null) {
+                TaskForm(
+                    modifier = modifier,
+                    taskViewModel = taskViewModel,
+                    snackbarController = snackbarController,
+                    taskToModify = taskToModify
+                )
+            }
+        }
+
+        is UIState.Error -> {
+            ErrorScreen(
+                modifier = modifier,
+                errorMessage = (fetchedTaskState as UIState.Error).message,
+                onDismiss = {
+                    taskViewModel.resetFetchedTaskState()
+                }
+            )
+        }
+
+        else -> LoadingScreen()
+
+    }
+}
+
+@Composable
+private fun ObserveUpdatedTaskState(
+    updatedTaskState: UIState<String>,
+    taskViewModel: TaskViewModel,
+    snackbarController: TaskieSnackbarController
+) {
+
+    when (updatedTaskState) {
+        is UIState.Success -> {
+            val message = updatedTaskState.data
+            val data = TaskieSnackbarData(
+                message = message,
+                iconResourceId = R.drawable.info_24,
+                actionLabel = "OK",
+                onActionClick = {
+                    taskViewModel.resetUpdateTaskState()
+                    snackbarController.dismiss()
+                }
+            )
+            snackbarController.showSnackbar(data = data, duration = SnackbarDuration.Indefinite)
+
+        }
+
+        is UIState.Error -> {
+            ErrorScreen(
+                modifier = Modifier,
+                errorMessage = (updatedTaskState.message),
+                onDismiss = {
+                    taskViewModel.resetUpdateTaskState()
+                }
+            )
+        }
+
+        else -> {}
+    }
+
+}
+
+@SuppressLint("UnrememberedMutableState")
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModifyTaskScreen(modifier: Modifier = Modifier, taskToModify: Task = tasks[0]) {
-
-    var title by remember { mutableStateOf(taskToModify.title) }
-    var description by remember { mutableStateOf(taskToModify.description) }
-    var status by remember { mutableStateOf(taskToModify.status) }
-    var dueDateTime by remember { mutableStateOf(taskToModify.dueDateTime) }
-    val dueDateTimeString by remember {
-        mutableStateOf(
-            dueDateTime.format(
-                DateTimeFormatter.ofPattern(
-                    "HH:mm:ss, EEEE, dd/MM/yyyy"
-                )
-            )
-        )
-    }
+private fun TaskForm(
+    modifier: Modifier = Modifier,
+    taskViewModel: TaskViewModel,
+    snackbarController: TaskieSnackbarController,
+    taskToModify: Task
+) {
+    val updatedTaskState by taskViewModel.updatedTaskState.collectAsState()
+    var title by mutableStateOf(taskToModify.title)
+    var description by mutableStateOf(taskToModify.description)
+    var status by mutableStateOf(taskToModify.status)
+    var dueDateTime by mutableStateOf(taskToModify.dueDateTime)
     var expanded by remember { mutableStateOf(false) }
     val statusOptions: List<String> = Status.entries.map { it.label }
 
@@ -78,7 +157,7 @@ fun ModifyTaskScreen(modifier: Modifier = Modifier, taskToModify: Task = tasks[0
     ) {
         Text(
             text = stringResource(R.string.modify_this_task),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleLarge
         )
 
         Card(
@@ -161,10 +240,17 @@ fun ModifyTaskScreen(modifier: Modifier = Modifier, taskToModify: Task = tasks[0
                 }
 
                 DateTimePickerTextFields(
-                    modifier = modifier.fillMaxWidth(), dueDateTime
-                ) { dateTime ->
-                    dueDateTime = dateTime
-                }
+                    modifier = modifier.fillMaxWidth(),
+                    initialDateTime = (
+                            if (dueDateTime.isNotBlank()) {
+                                LocalDateTime.parse(dueDateTime)
+                            } else {
+                                LocalDateTime.MIN
+                            }),
+                    onDateTimeSelected = { dateTime ->
+                        dueDateTime = dateTime.toString()
+                    }
+                )
             }
         }
 
@@ -175,13 +261,16 @@ fun ModifyTaskScreen(modifier: Modifier = Modifier, taskToModify: Task = tasks[0
             elevation = ButtonDefaults.buttonElevation(4.dp),
             shape = RoundedCornerShape(10.dp),
             onClick = {
-                val modifiedTask = Task(
-                    title = title,
-                    description = description,
-                    status = status,
-                    dueDateTime = dueDateTime
+                // Make an update request
+                taskViewModel.updateTask(
+                    id = taskToModify.id,
+                    task = Task(
+                        title = title,
+                        description = description,
+                        status = status,
+                        dueDateTime = dueDateTime
+                    )
                 )
-                Log.d("onModifiedTaskClick", modifiedTask.toString())
             }) {
             Text(
                 text = stringResource(R.string.modify_task),
@@ -191,5 +280,11 @@ fun ModifyTaskScreen(modifier: Modifier = Modifier, taskToModify: Task = tasks[0
         }
     }
 
+    ObserveUpdatedTaskState(
+        updatedTaskState = updatedTaskState,
+        taskViewModel = taskViewModel,
+        snackbarController = snackbarController
+    )
 
 }
+

@@ -1,19 +1,26 @@
 package com.daveace.taskie.repository
 
+import com.daveace.taskie.api.error.ErrorConverter
 import com.daveace.taskie.api.model.Task
-import com.daveace.taskie.api.service.TaskService
+import com.daveace.taskie.api.model.TaskErrorResponse
 import com.daveace.taskie.api.model.Tasks
+import com.daveace.taskie.api.service.TaskService
 import javax.inject.Inject
 
-class TaskRepository @Inject constructor(private val service: TaskService) {
+open class TaskRepository @Inject constructor(
+    private val service: TaskService,
+    private val errorConverter: ErrorConverter
+) {
 
     suspend fun createTask(task: Task): Result<String> {
         return try {
             val response = service.createTask(task)
             if (response.isSuccessful)
                 Result.success("${response.code()}: Task created!")
-            else
-                Result.failure(Exception("${response.code()}: ${response.message()}"))
+            else {
+                val error = errorConverter.convert(response, TaskErrorResponse::class.java)
+                return Result.failure(Exception("Error (${error?.status}): ${error?.message}"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -24,8 +31,10 @@ class TaskRepository @Inject constructor(private val service: TaskService) {
             val response = service.readTasks(params)
             if (response.isSuccessful && response.body() != null)
                 Result.success(response.body())
-            else
-                Result.failure(Exception("${response.code()}: ${response.message()}"))
+            else {
+                val error = errorConverter.convert(response, TaskErrorResponse::class.java)
+                return Result.failure(Exception("Error (${error?.status}): ${error?.message}"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -36,9 +45,10 @@ class TaskRepository @Inject constructor(private val service: TaskService) {
             val response = service.readTasks()
             if (response.isSuccessful && response.body() != null)
                 Result.success(response.body())
-            else
-                Result.failure(Exception("${response.code()}: ${response.message()}"))
-
+            else {
+                val error = errorConverter.convert(response, TaskErrorResponse::class.java)
+                return Result.failure(Exception("Error (${error?.status}): ${error?.message}"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -49,9 +59,10 @@ class TaskRepository @Inject constructor(private val service: TaskService) {
             val response = service.readTasksByTitle(title)
             if (response.isSuccessful && response.body() != null)
                 Result.success(response.body())
-            else
-                Result.failure(Exception("${response.code()}: ${response.message()}"))
-
+            else {
+                val error = errorConverter.convert(response, TaskErrorResponse::class.java)
+                return Result.failure(Exception("Error (${error?.status}): ${error?.message}"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -62,9 +73,10 @@ class TaskRepository @Inject constructor(private val service: TaskService) {
             val response = service.readTasksByStatus(status)
             if (response.isSuccessful && response.body() != null)
                 Result.success(response.body())
-            else
-                Result.failure(Exception("${response.code()}: ${response.message()}"))
-
+            else {
+                val error = errorConverter.convert(response, TaskErrorResponse::class.java)
+                return Result.failure(Exception("Error (${error?.status}): ${error?.message}"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -75,8 +87,10 @@ class TaskRepository @Inject constructor(private val service: TaskService) {
             val response = service.readTask(id)
             if (response.isSuccessful && response.body() != null)
                 Result.success(response.body())
-            else
-                Result.failure(Exception("${response.code()}: ${response.message()}"))
+            else {
+                val error = errorConverter.convert(response, TaskErrorResponse::class.java)
+                return Result.failure(Exception("Error (${error?.status}): ${error?.message}"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -87,8 +101,10 @@ class TaskRepository @Inject constructor(private val service: TaskService) {
             val response = service.updateTask(id, task)
             if (response.isSuccessful)
                 Result.success("${response.code()}: Task updated!")
-            else
-                Result.failure(Exception("${response.code()}: ${response.message()}"))
+            else {
+                val error = errorConverter.convert(response, TaskErrorResponse::class.java)
+                return Result.failure(Exception("Error (${error?.status}): ${error?.message}"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -99,12 +115,14 @@ class TaskRepository @Inject constructor(private val service: TaskService) {
             val response = service.deleteTask(id)
             if (response.isSuccessful)
                 Result.success("${response.code()}: Task deleted!")
-            else
-                Result.failure(Exception("${response.code()}: ${response.message()}"))
+            else {
+                val error = errorConverter.convert(response, TaskErrorResponse::class.java)
+                return Result.failure(Exception("Error (${error?.status}): ${error?.message}"))
+            }
+
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-
 }
 

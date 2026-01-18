@@ -37,10 +37,10 @@ import com.daveace.taskie.state.UIState
 fun PaginationBar(
     modifier: Modifier = Modifier,
     tasksState: UIState<Tasks?>,
-    snackbarController: TaskieSnackbarController
+    snackbarController: TaskieSnackbarController,
+    taskViewModel: TaskViewModel
 ) {
 
-    val taskViewModel: TaskViewModel = hiltViewModel()
     val totalPage by remember {
         mutableStateOf(
             if (tasksState is UIState.Success) {
