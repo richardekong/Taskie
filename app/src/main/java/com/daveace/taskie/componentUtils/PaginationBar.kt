@@ -27,10 +27,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.daveace.taskie.R
 import com.daveace.taskie.api.model.Tasks
-import com.daveace.taskie.model.TaskViewModel
+import com.daveace.taskie.viewmodel.TaskViewModel
 import com.daveace.taskie.state.UIState
 
 @Composable
@@ -126,7 +125,7 @@ fun PaginationBar(
             }) {
             Icon(
                 painter = painterResource(R.drawable.arrow_back),
-                contentDescription = "arrow back"
+                contentDescription = stringResource(R.string.arrow_back)
             )
         }
         OutlinedTextField(
@@ -169,7 +168,7 @@ fun PaginationBar(
             }) {
             Icon(
                 painter = painterResource(R.drawable.arrow_forward),
-                contentDescription = "Arrow forward",
+                contentDescription = stringResource(R.string.arrow_forward),
             )
         }
     }

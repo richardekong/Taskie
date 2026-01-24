@@ -7,5 +7,7 @@ sealed class NavRoutes (val routes:String){
     object Details: NavRoutes("Details")
     object Edit: NavRoutes("Edit")
 
+    object Schedules: NavRoutes("Schedules")
+
 }
 

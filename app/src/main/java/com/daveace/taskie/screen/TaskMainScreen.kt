@@ -35,7 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import com.daveace.taskie.R
 import com.daveace.taskie.componentUtils.TaskieSnackbar
 import com.daveace.taskie.componentUtils.TaskieSnackbarController
-import com.daveace.taskie.model.TaskViewModel
+import com.daveace.taskie.viewmodel.TaskViewModel
 import com.daveace.taskie.nav.NavBarItems
 import com.daveace.taskie.nav.NavRoutes
 
@@ -147,6 +147,13 @@ fun NavigationHost(
         composable(NavRoutes.Tasks.routes) {
             TasksScreen(
                 navController = navController,
+                taskViewModel = taskViewModel,
+                snackbarController = snackbarController
+            )
+        }
+
+        composable(NavRoutes.Schedules.routes){
+            TaskSchedules(
                 taskViewModel = taskViewModel,
                 snackbarController = snackbarController
             )

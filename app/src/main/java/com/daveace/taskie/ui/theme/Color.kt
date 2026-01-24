@@ -7,3 +7,6 @@ val dark = Color(0xFF000000)
 val green = Color(0xFF34A853)
 
 val crimson = Color(0xFFDC143C)
+
+val lightGreen = Color(0xFFE8FFE8
+)

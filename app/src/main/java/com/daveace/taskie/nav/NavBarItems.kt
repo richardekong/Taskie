@@ -5,6 +5,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
+import com.daveace.taskie.vector.Calendar
 
 object NavBarItems {
 
@@ -24,11 +25,11 @@ object NavBarItems {
             image = Icons.Filled.Edit,
             route = "edit"
         ),
-//        BarItem(
-//            title = "Tasks",
-//            image = Icons.AutoMirrored.Filled.List,
-//            route = "tasks"
-//        )
+        BarItem(
+            title = "Schedules",
+            image = Icons.Filled.Calendar,
+            route = "schedules"
+        )
     )
 }
 

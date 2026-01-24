@@ -16,9 +16,13 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven(url = "https://jitpack.io") {
+            content{
+                    includeGroupByRegex("com\\.github\\..*")
+            }
+        }
     }
 }
 
 rootProject.name = "Taskie"
 include(":app")
- 

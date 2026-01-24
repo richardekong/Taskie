@@ -34,4 +34,8 @@
     <string name="taskie_snackbar_icon">Taskie snackbar icon</string>
     <string name="ok">OK</string>
     <string name="close">Close</string>
+    <string name="keys">Keys</string>
+    <string name="arrow_forward">Arrow forward</string>
+    <string name="arrow_back">arrow back</string>
+    <string name="arrow_down">arrow down</string>
 </resources>

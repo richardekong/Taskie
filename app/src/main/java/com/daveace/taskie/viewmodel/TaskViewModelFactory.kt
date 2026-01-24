@@ -1,4 +1,4 @@
-package com.daveace.taskie.model
+package com.daveace.taskie.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

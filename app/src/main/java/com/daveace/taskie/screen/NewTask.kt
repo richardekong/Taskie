@@ -44,7 +44,7 @@ import com.daveace.taskie.api.model.Task
 import com.daveace.taskie.componentUtils.TaskieSnackbarController
 import com.daveace.taskie.componentUtils.TaskieSnackbarData
 import com.daveace.taskie.model.Status
-import com.daveace.taskie.model.TaskViewModel
+import com.daveace.taskie.viewmodel.TaskViewModel
 import com.daveace.taskie.state.UIState
 import com.daveace.taskie.ui.theme.dark
 

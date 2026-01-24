@@ -1,9 +1,7 @@
 package com.daveace.taskie.screen
 
 import DateTimePickerTextFields
-import android.annotation.SuppressLint
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -46,7 +44,7 @@ import com.daveace.taskie.api.model.Task
 import com.daveace.taskie.componentUtils.TaskieSnackbarController
 import com.daveace.taskie.componentUtils.TaskieSnackbarData
 import com.daveace.taskie.model.Status
-import com.daveace.taskie.model.TaskViewModel
+import com.daveace.taskie.viewmodel.TaskViewModel
 import com.daveace.taskie.state.UIState
 import com.daveace.taskie.ui.theme.dark
 import java.time.LocalDateTime
@@ -128,7 +126,6 @@ private fun ObserveUpdatedTaskState(
 
 }
 
-@SuppressLint("UnrememberedMutableState")
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

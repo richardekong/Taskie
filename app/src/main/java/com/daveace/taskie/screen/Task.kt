@@ -29,7 +29,7 @@ import com.daveace.taskie.R
 import com.daveace.taskie.api.model.Task
 import com.daveace.taskie.componentUtils.TaskieSnackbarController
 import com.daveace.taskie.componentUtils.TaskieSnackbarData
-import com.daveace.taskie.model.TaskViewModel
+import com.daveace.taskie.viewmodel.TaskViewModel
 import com.daveace.taskie.state.UIState
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

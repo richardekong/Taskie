@@ -70,7 +70,7 @@ import com.daveace.taskie.api.model.Tasks
 import com.daveace.taskie.componentUtils.PaginationBar
 import com.daveace.taskie.componentUtils.TaskieSnackbarController
 import com.daveace.taskie.componentUtils.TaskieSnackbarData
-import com.daveace.taskie.model.TaskViewModel
+import com.daveace.taskie.viewmodel.TaskViewModel
 import com.daveace.taskie.nav.NavRoutes
 import com.daveace.taskie.state.UIState
 import com.daveace.taskie.ui.theme.crimson
