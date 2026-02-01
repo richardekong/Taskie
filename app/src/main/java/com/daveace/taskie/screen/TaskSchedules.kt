@@ -21,7 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -45,12 +47,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.daveace.taskie.R
 import com.daveace.taskie.api.model.Task
 import com.daveace.taskie.api.model.Tasks
 import com.daveace.taskie.componentUtils.PaginationBar
 import com.daveace.taskie.componentUtils.TaskieSnackbarController
 import com.daveace.taskie.model.Status
+import com.daveace.taskie.nav.NavRoutes
 import com.daveace.taskie.state.UIState
 import com.daveace.taskie.ui.theme.light
 import com.daveace.taskie.viewmodel.TaskViewModel
@@ -66,29 +70,25 @@ import java.util.Locale
 @Composable
 fun TaskSchedules(
     modifier: Modifier = Modifier,
+    navController: NavHostController,
     taskViewModel: TaskViewModel,
+    initialCalendarDay: ClickedCalendarDay? = null,
     snackbarController: TaskieSnackbarController
 ) {
-
     val tasksState by taskViewModel.fetchedTasksState.collectAsState()
-    var clickedCalendarDay by remember { mutableStateOf<ClickedCalendarDay?>(null) }
+    var clickedCalendarDay by remember { mutableStateOf<ClickedCalendarDay?>(initialCalendarDay) }
     var isCalendarDayShown by remember { mutableStateOf(false) }
     when (tasksState) {
         is UIState.Loading -> LoadingScreen()
         is UIState.Success -> {
             val tasks: Tasks? = (tasksState as UIState.Success<Tasks?>).data
             Column(
-                modifier = modifier.padding(16.dp),
+                modifier = modifier
+                    .fillMaxSize(0.9F)
+                    .padding(16.dp),
                 verticalArrangement = Arrangement.SpaceEvenly,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Task Schedules",
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(8.dp)
-                )
                 if (!isCalendarDayShown) {
                     StatusLegend(modifier = Modifier)
                     TaskSchedules(
@@ -109,6 +109,8 @@ fun TaskSchedules(
                 } else {
                     clickedCalendarDay?.let { clickedItem ->
                         ScheduledTaskScreen(
+                            navController = navController,
+                            taskViewModel = taskViewModel,
                             clickedCalendarDay = clickedItem,
                             onDismiss = { isCalendarDayShown = false }
                         )
@@ -166,11 +168,13 @@ private fun TaskSchedules(
 
 }
 
-private data class ClickedCalendarDay(val date: LocalDate, val schedules: List<CalendarEvent<Task>>)
+data class ClickedCalendarDay(val date: LocalDate, val schedules: List<CalendarEvent<Task>>)
 
 @Composable
 private fun ScheduledTaskScreen(
     modifier: Modifier = Modifier,
+    navController: NavHostController,
+    taskViewModel: TaskViewModel,
     clickedCalendarDay: ClickedCalendarDay,
     onDismiss: (() -> Unit)? = null
 ) {
@@ -188,7 +192,7 @@ private fun ScheduledTaskScreen(
         )
         LazyColumn(modifier = Modifier.wrapContentSize()) {
             items(items = tasks) {
-                ExpandableTaskDetail(task = it)
+                TaskDetail(navController = navController, taskViewModel = taskViewModel, task = it)
                 if (tasks.size > 1) {
                     HorizontalDivider(color = Color.LightGray, thickness = 1.dp)
                 }
@@ -215,9 +219,11 @@ private fun ScheduledTaskScreen(
 }
 
 @Composable
-private fun ExpandableTaskDetail(task: Task?) {
-    var expanded by remember { mutableStateOf(false) }
-    val rotation by animateFloatAsState(if (expanded) 180f else 0f)
+private fun TaskDetail(
+    navController: NavHostController,
+    taskViewModel: TaskViewModel,
+    task: Task?
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,48 +240,23 @@ private fun ExpandableTaskDetail(task: Task?) {
         )
         IconButton(
             modifier = Modifier,
-            onClick = { expanded = !expanded }
+            onClick = {
+                // update task id
+                taskViewModel.setSelectedId(task?.id)
+                // Navigate to Task Detail screen:
+                navController.navigate(NavRoutes.Details.routes)
+            }
         ) {
             Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = stringResource(R.string.arrow_down),
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = stringResource(R.string.arrow_forward),
                 modifier = Modifier
                     .size(16.dp)
                     .weight(0.1F)
-                    .rotate(degrees = rotation)
             )
         }
     }
-    if (expanded) {
-        ExpandedTaskDetailSection(task)
-    }
-}
 
-@Composable
-private fun ExpandedTaskDetailSection(task: Task?) {
-    Column(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = task?.description ?: "",
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = "Status: ${task?.status ?: ""}",
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        if (!task?.dueDateTime.isNullOrBlank()) {
-            val date: String = LocalDateTime.parse(task.dueDateTime)
-                .format(DateTimeFormatter.ofPattern("HH:mm:ss EEE dd MMM, yyyy"))
-            Text(
-                text = "Due date/Time: $date",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
 }
 
 @Composable

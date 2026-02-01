@@ -2,6 +2,7 @@ package com.daveace.taskie.componentUtils
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -96,7 +97,6 @@ fun PaginationBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
             .background(
                 color = MaterialTheme.colorScheme.background,
                 shape = RoundedCornerShape(8.dp)
@@ -141,8 +141,8 @@ fun PaginationBar(
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             singleLine = true,
-            label = {},
-            textStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Center),
+            label = null,
+            textStyle = MaterialTheme.typography.bodySmall.copy(textAlign = TextAlign.Center),
             modifier = Modifier
                 .wrapContentSize()
                 .weight(0.5F)

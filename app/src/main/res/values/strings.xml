@@ -38,4 +38,9 @@
     <string name="arrow_forward">Arrow forward</string>
     <string name="arrow_back">arrow back</string>
     <string name="arrow_down">arrow down</string>
+    <string name="task_list_tab">task list tab</string>
+    <string name="schedules">schedules</string>
+    <string name="menu">menu</string>
+    <string name="edit">edit</string>
+    <string name="update">Update</string>
 </resources>

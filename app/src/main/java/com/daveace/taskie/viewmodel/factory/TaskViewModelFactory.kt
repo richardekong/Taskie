@@ -1,8 +1,9 @@
-package com.daveace.taskie.viewmodel
+package com.daveace.taskie.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.daveace.taskie.repository.TaskRepository
+import com.daveace.taskie.viewmodel.TaskViewModel
 
 class TaskViewModelFactory(private val taskRepository: TaskRepository): ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
