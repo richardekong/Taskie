@@ -1,8 +1,14 @@
 package com.daveace.taskie.screen
 
 import android.util.Log
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +59,7 @@ import com.daveace.taskie.api.model.Task
 import com.daveace.taskie.api.model.Tasks
 import com.daveace.taskie.componentUtils.PaginationBar
 import com.daveace.taskie.componentUtils.TaskieSnackbarController
+import com.daveace.taskie.componentUtils.TasksSearchBar
 import com.daveace.taskie.model.Status
 import com.daveace.taskie.nav.NavRoutes
 import com.daveace.taskie.state.UIState
@@ -66,31 +73,50 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
+import kotlin.collections.filter
 
 @Composable
 fun TaskSchedules(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     taskViewModel: TaskViewModel,
-    initialCalendarDay: ClickedCalendarDay? = null,
     snackbarController: TaskieSnackbarController
 ) {
     val tasksState by taskViewModel.fetchedTasksState.collectAsState()
-    var clickedCalendarDay by remember { mutableStateOf<ClickedCalendarDay?>(initialCalendarDay) }
+    var clickedCalendarDay by remember { mutableStateOf<ClickedCalendarDay?>(null) }
     var isCalendarDayShown by remember { mutableStateOf(false) }
+
     when (tasksState) {
         is UIState.Loading -> LoadingScreen()
         is UIState.Success -> {
             val tasks: Tasks? = (tasksState as UIState.Success<Tasks?>).data
             Column(
                 modifier = modifier
-                    .fillMaxSize(0.9F)
-                    .padding(16.dp),
+                    .fillMaxSize(0.9F),
+//                    .padding(16.dp),
                 verticalArrangement = Arrangement.SpaceEvenly,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (!isCalendarDayShown) {
-                    StatusLegend(modifier = Modifier)
+                    val onResultClick: (String) -> Unit = { text ->
+                        val scheduledTasks = getSchedules(tasks = tasks)
+                        val searchedSchedule = scheduledTasks?.find {
+                            it.data?.title.equals(text, true)
+                        }
+
+                        val relatedSchedules = scheduledTasks?.filter {
+                            it.date.isEqual(searchedSchedule?.date)
+                        }
+                        clickedCalendarDay = relatedSchedules?.let {
+                                ClickedCalendarDay(it[0].date, it)
+                        }
+                    }
+                    tasks?.tasks?.let {
+                        TasksSearchBar(
+                            fetchedTasks = it,
+                            onResultClick = onResultClick
+                        )
+                    }
                     TaskSchedules(
                         taskViewModel = taskViewModel,
                         clickedCalendarDay = clickedCalendarDay,
@@ -136,6 +162,9 @@ private fun TaskSchedules(
     val schedules = getSchedules(tasks)
     val initialDate = getInitialCalendarDate(taskViewModel.selectedTaskId, schedules)
     Log.d("clicked date:", "$initialDate")
+    Log.d("searched schedules","$clickedCalendarDay")
+
+    StatusLegend(modifier = Modifier)
     schedules?.let {
         ComposeCalendar(
             modifier = Modifier,

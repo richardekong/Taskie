@@ -122,18 +122,6 @@ fun Main(
     val tasksTabViewModel = hiltViewModel<TasksTabViewModel>()
 
     val selectedTabIndex by tasksTabViewModel.selectedTabIndex.collectAsState()
-
-    val coroutineScope = rememberCoroutineScope()
-
-    val listState = rememberLazyListState()
-
-    var searchedCalendarDay by remember { mutableStateOf<ClickedCalendarDay?>(null) }
-
-    var onResultClick by remember{
-        mutableStateOf<(String) -> Unit>({})
-    }
-
-    fun getMonthIndex(from: YearMonth, to:YearMonth):Int = (to.year - from.year) * 12 + (to.monthValue - from.monthValue)
     data class TabItem(val title: String, val icon: ImageVector)
 
     val tabItems = listOf(
@@ -159,15 +147,8 @@ fun Main(
 
         }
 
-        TasksSearchBar(fetchedTasks = tasks, onResultClick = onResultClick)
         when (selectedTabIndex) {
             0 -> {
-                onResultClick = { text ->
-                    val resultPosition = tasks.indexOf(tasks.find { it.title.equals(text, true) })
-                    coroutineScope.launch {
-                        listState.scrollToItem(resultPosition)
-                    }
-                }
                 TaskItems(
                     modifier = modifier,
                     navController = navController,
@@ -179,32 +160,10 @@ fun Main(
             }
 
             1 -> {
-                onResultClick = { text ->
-                    val scheduledTasks = tasks.filter { it.dueDateTime.isNotBlank() }
-                        .map {
-                            CalendarEvent(
-                                data = it,
-                                date = LocalDateTime.parse(it.dueDateTime).toLocalDate()
-                            )
-                        }
-                        .sortedBy { it.date }
-                    val searchedSchedule = scheduledTasks.find {
-                        it.data?.title.equals(text, true)
-                    }
-
-                    val relatedSchedules = scheduledTasks.filter {
-                        it.date.isEqual(searchedSchedule?.date)
-                    }
-                    searchedCalendarDay =
-                        ClickedCalendarDay(relatedSchedules[0].date, relatedSchedules)
-
-                }
-                Log.d("searched schedules","$searchedCalendarDay")
                 TaskSchedules(
                     modifier = Modifier,
                     navController = navController,
                     taskViewModel = taskViewModel,
-                    initialCalendarDay = searchedCalendarDay,
                     snackbarController = snackbarController
                 )
             }
@@ -222,6 +181,16 @@ fun TaskItems(
     tasksState: UIState<Tasks?>
 ) {
     val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val  onResultClick:(String) -> Unit = { text ->
+        val resultPosition = tasks.indexOf(tasks.find { it.title.equals(text, true) })
+        coroutineScope.launch {
+            listState.scrollToItem(resultPosition)
+        }
+    }
+
+    TasksSearchBar(fetchedTasks = tasks, onResultClick = onResultClick)
     Column(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             contentPadding = PaddingValues(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 4.dp),
