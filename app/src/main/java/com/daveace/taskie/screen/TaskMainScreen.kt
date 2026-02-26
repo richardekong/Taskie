@@ -160,7 +160,6 @@ fun MainScreen(modifier: Modifier = Modifier, taskViewModel: TaskViewModel) {
     )
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavigationHost(
     navController: NavHostController,

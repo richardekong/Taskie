@@ -38,6 +38,7 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
     }
@@ -60,9 +61,9 @@ dependencies {
     implementation(libs.squareup.okhttp3.logging.interceptor)
     implementation(libs.dagger.hilt.android)
     implementation(libs.hilt.navigation.compose)
-    implementation(libs.androidx.foundation)
     kapt(libs.dagger.hilt.compiler)
     implementation(libs.compose.calendar)
+    implementation(libs.kizitonwose.calendar)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

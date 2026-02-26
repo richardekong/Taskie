@@ -1,23 +1,17 @@
 package com.daveace.taskie.screen
 
 import android.util.Log
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -29,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -42,38 +35,46 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.daveace.taskie.R
-import com.daveace.taskie.api.model.Task
 import com.daveace.taskie.api.model.Tasks
 import com.daveace.taskie.componentUtils.PaginationBar
 import com.daveace.taskie.componentUtils.TaskieSnackbarController
 import com.daveace.taskie.componentUtils.TasksSearchBar
 import com.daveace.taskie.model.Status
+import com.daveace.taskie.model.Task
 import com.daveace.taskie.nav.NavRoutes
 import com.daveace.taskie.state.UIState
+import com.daveace.taskie.ui.theme.blue
 import com.daveace.taskie.ui.theme.light
+import com.daveace.taskie.ui.theme.paleOrange
+import com.daveace.taskie.viewmodel.TaskCalendarViewModel
 import com.daveace.taskie.viewmodel.TaskViewModel
-import dev.alejo.compose_calendar.CalendarEvent
-import dev.alejo.compose_calendar.ComposeCalendar
+import com.kizitonwose.calendar.compose.HorizontalCalendar
+import com.kizitonwose.calendar.compose.rememberCalendarState
+import com.kizitonwose.calendar.core.CalendarDay
+import com.kizitonwose.calendar.core.daysOfWeek
+import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
+import dev.alejo.compose_calendar.component.DayOfWeekHeader
 import dev.alejo.compose_calendar.util.CalendarDefaults
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
-import java.time.temporal.WeekFields
-import java.util.Locale
-import kotlin.collections.filter
+
+private data class ClickedCalendarDayItems(val day: CalendarDay, val associatedTasks: List<Task>)
 
 @Composable
 fun TaskSchedules(
@@ -83,7 +84,8 @@ fun TaskSchedules(
     snackbarController: TaskieSnackbarController
 ) {
     val tasksState by taskViewModel.fetchedTasksState.collectAsState()
-    var clickedCalendarDay by remember { mutableStateOf<ClickedCalendarDay?>(null) }
+    val calendarViewModel = hiltViewModel<TaskCalendarViewModel>()
+    var clickedCalendarDayItems by remember { mutableStateOf<ClickedCalendarDayItems?>(null) }
     var isCalendarDayShown by remember { mutableStateOf(false) }
 
     when (tasksState) {
@@ -93,39 +95,20 @@ fun TaskSchedules(
             Column(
                 modifier = modifier
                     .fillMaxSize(0.9F),
-//                    .padding(16.dp),
                 verticalArrangement = Arrangement.SpaceEvenly,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (!isCalendarDayShown) {
-                    val onResultClick: (String) -> Unit = { text ->
-                        val scheduledTasks = getSchedules(tasks = tasks)
-                        val searchedSchedule = scheduledTasks?.find {
-                            it.data?.title.equals(text, true)
-                        }
-
-                        val relatedSchedules = scheduledTasks?.filter {
-                            it.date.isEqual(searchedSchedule?.date)
-                        }
-                        clickedCalendarDay = relatedSchedules?.let {
-                                ClickedCalendarDay(it[0].date, it)
-                        }
-                    }
-                    tasks?.tasks?.let {
-                        TasksSearchBar(
-                            fetchedTasks = it,
-                            onResultClick = onResultClick
-                        )
-                    }
                     TaskSchedules(
-                        taskViewModel = taskViewModel,
-                        clickedCalendarDay = clickedCalendarDay,
                         tasks = tasks,
-                        onCalendarDayClick = { date, schedules ->
-                            clickedCalendarDay = ClickedCalendarDay(date, schedules)
+                        onCalendarDayItemClick = { day, tasks ->
+                            clickedCalendarDayItems = ClickedCalendarDayItems(day, tasks)
+                            // Update calendar startMonth:
+                            calendarViewModel.setStartMonth(YearMonth.from(day.date))
                             isCalendarDayShown = true
                         }
                     )
+
                     PaginationBar(
                         modifier = Modifier,
                         taskViewModel = taskViewModel,
@@ -133,11 +116,11 @@ fun TaskSchedules(
                         snackbarController = snackbarController,
                     )
                 } else {
-                    clickedCalendarDay?.let { clickedItem ->
+                    clickedCalendarDayItems?.let { calendarDayItems ->
                         ScheduledTaskScreen(
                             navController = navController,
                             taskViewModel = taskViewModel,
-                            clickedCalendarDay = clickedItem,
+                            clickedCalendarDayItems = calendarDayItems,
                             onDismiss = { isCalendarDayShown = false }
                         )
                     }
@@ -150,76 +133,205 @@ fun TaskSchedules(
     }
 }
 
-
 @Composable
 private fun TaskSchedules(
-    taskViewModel: TaskViewModel,
-    clickedCalendarDay: ClickedCalendarDay?,
+    modifier: Modifier = Modifier,
     tasks: Tasks?,
-    onCalendarDayClick: (LocalDate, List<CalendarEvent<Task>>) -> Unit
+    onCalendarDayItemClick: (CalendarDay, List<Task>) -> Unit = { _, _ -> }
 ) {
 
-    val schedules = getSchedules(tasks)
-    val initialDate = getInitialCalendarDate(taskViewModel.selectedTaskId, schedules)
-    Log.d("clicked date:", "$initialDate")
-    Log.d("searched schedules","$clickedCalendarDay")
+    val calendarViewModel = hiltViewModel<TaskCalendarViewModel>()
 
-    StatusLegend(modifier = Modifier)
-    schedules?.let {
-        ComposeCalendar(
-            modifier = Modifier,
-            initDate = clickedCalendarDay?.date ?: initialDate,
-            events = it,
-            onDayClick = { date, schedules ->
-                // Compose a screen of the schedules
-                onCalendarDayClick(date, schedules)
-            },
-            calendarColors = CalendarDefaults.calendarColors(),
-            firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek,
-            eventIndicator = { schedule, position, size ->
-                if (position < 2) {
-                    ScheduledIndicatorContent(schedule = schedule)
+    val processedTasks = remember { getProcessedTaskSchedules(tasks) }
+
+    val categorizedTasks = remember { processedTasks?.groupBy { it.dueDateTime?.toLocalDate() } }
+
+    val currentMonth = remember { YearMonth.now() }
+
+    val startMonth by calendarViewModel.startMonth.collectAsState()
+
+    val endMonth by calendarViewModel.endMonth.collectAsState()
+
+    val firstVisibleMonth by calendarViewModel.firstVisibleMonth.collectAsState()
+
+    val firstDayOfWeek = remember { firstDayOfWeekFromLocale() }
+
+    val state = rememberCalendarState(
+        startMonth = startMonth ?: YearMonth.from(processedTasks?.let { it[0].dueDateTime }),
+        endMonth = endMonth ?: YearMonth.from(processedTasks?.last()?.dueDateTime),
+        firstVisibleMonth = firstVisibleMonth ?: currentMonth,
+        firstDayOfWeek = firstDayOfWeek
+    )
+
+    val yearAndMonth = state.firstVisibleMonth.yearMonth
+        .format(DateTimeFormatter.ofPattern("MMMM yyyy"))
+
+    var foundDate by remember { mutableStateOf<LocalDate?>(null) }
+
+    val scope = rememberCoroutineScope()
+
+    val onSearchResultClick: (String) -> Unit = { query ->
+        tasks?.tasks?.let {
+
+            val dateString = it
+                .filter { task -> task.dueDateTime.isNotBlank() }
+                .find { task -> query.equals(task.title, true) }
+                ?.dueDateTime
+
+            val extractedDateTime = runCatching { LocalDateTime.parse(dateString) }.getOrNull()
+
+            extractedDateTime?.let { dateTime ->
+                // Initialize found date:
+                val foundYearMonth = YearMonth.from(dateTime)
+                foundDate = dateTime.toLocalDate()
+                // Update calendar startMonth:
+                calendarViewModel.setStartMonth(foundYearMonth)
+                // Move calendar to found year month:
+                scope.launch {
+                    state.scrollToMonth(foundYearMonth)
                 }
-                if (position == 2)
-                    Text(
-                        text = "+${size - 2}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
-                    )
-            },
-            maxIndicators = CalendarDefaults.IndicatorLimit.Three,
-            indicatorLayout = CalendarDefaults.IndicatorLayout.Grid,
-            isContentClickable = true,
-            onPreviousMonthClick = {},
-            onNextMonthClick = {}
-        )
+            }
+        }
     }
 
+    tasks?.let { TasksSearchBar(fetchedTasks = it.tasks, onResultClick = onSearchResultClick) }
+    StatusLegend(modifier = Modifier)
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = yearAndMonth, style = MaterialTheme.typography.titleMedium)
+        HorizontalCalendar(
+            state = state,
+            monthHeader = {
+                DayOfWeekHeader(
+                    daysOfWeek = daysOfWeek(firstDayOfWeekFromLocale()),
+                    calendarColors = CalendarDefaults.calendarColors()
+                )
+            },
+            dayContent = { day ->
+                val tasks = categorizedTasks?.let { it[day.date] }
+                CalendarDayContent(
+                    day = day,
+                    tasksForTheDay = tasks,
+                    foundDate = foundDate,
+                    onCalendarDayItemClick = onCalendarDayItemClick
+                )
+            }
+        )
+    }
 }
 
-data class ClickedCalendarDay(val date: LocalDate, val schedules: List<CalendarEvent<Task>>)
+@Composable
+private fun CalendarDayContent(
+    day: CalendarDay,
+    tasksForTheDay: List<Task>?,
+    foundDate: LocalDate? = null,
+    onCalendarDayItemClick: (CalendarDay, List<Task>) -> Unit = { _, _ -> },
+) {
+    if (tasksForTheDay == null) {
+        CalendarDayContentWithoutTasks(day)
+    } else {
+        CalendarDayContentWithTasks(day, tasksForTheDay, foundDate, onCalendarDayItemClick)
+    }
+}
+
+@Composable
+private fun CalendarDayContentWithTasks(
+    day: CalendarDay,
+    tasksForTheDay: List<Task>,
+    foundDate: LocalDate? = null,
+    onCalendarDayItemClick: (CalendarDay, List<Task>) -> Unit = { _, _ -> },
+) {
+
+    val isSearchTaskConfirmed = foundDate?.isEqual(day.date) == true
+    val maxIndicatorCount = 2
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .padding(4.dp)
+            .background(
+                color = if (isSearchTaskConfirmed) paleOrange else blue,
+                shape = RoundedCornerShape(4.dp)
+            )
+            .clickable {
+                onCalendarDayItemClick.invoke(day, tasksForTheDay)
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            // Text for the day of the date:
+            Text(
+                text = day.date.dayOfMonth.toString(),
+                style = MaterialTheme.typography.bodySmall
+            )
+            // task indicators
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                tasksForTheDay.take(maxIndicatorCount).forEach { task ->
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .background(
+                                color = Status.entries.firstOrNull { entry ->
+                                    entry.label.equals(
+                                        task.status,
+                                        true
+                                    )
+                                }?.color ?: light,
+                                shape = CircleShape
+                            )
+                    )
+                }
+                tasksForTheDay.size.let { size ->
+                    if (size > maxIndicatorCount) {
+                        Text(
+                            text = "+${size - maxIndicatorCount}",
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CalendarDayContentWithoutTasks(day: CalendarDay) {
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .padding(4.dp)
+            .background(color = Color.Transparent),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = day.date.dayOfMonth.toString(),
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
 
 @Composable
 private fun ScheduledTaskScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
     taskViewModel: TaskViewModel,
-    clickedCalendarDay: ClickedCalendarDay,
+    clickedCalendarDayItems: ClickedCalendarDayItems,
     onDismiss: (() -> Unit)? = null
 ) {
-
-    val clickedDate by remember { mutableStateOf(clickedCalendarDay.date) }
-    val tasks by remember {
-        mutableStateOf(clickedCalendarDay.schedules.map { it.data }.toList())
-    }
-
+    val dateString = clickedCalendarDayItems.day
+        .date.format(DateTimeFormatter.ofPattern(" EEE dd MMM yyyy"))
     Column(modifier = modifier) {
         Text(
-            text = "${clickedDate.format(DateTimeFormatter.ofPattern(" EEE dd MMM yyyy"))}",
+            text = "$dateString",
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center
         )
         LazyColumn(modifier = Modifier.wrapContentSize()) {
+            val tasks = clickedCalendarDayItems.associatedTasks
             items(items = tasks) {
                 TaskDetail(navController = navController, taskViewModel = taskViewModel, task = it)
                 if (tasks.size > 1) {
@@ -256,10 +368,10 @@ private fun TaskDetail(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
-            .animateContentSize(),
+            .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Log.d("Task title", "${task?.title}")
         Text(
             text = task?.title ?: "",
             style = MaterialTheme.typography.bodyLarge,
@@ -288,23 +400,6 @@ private fun TaskDetail(
 
 }
 
-@Composable
-private fun ScheduledIndicatorContent(schedule: CalendarEvent<Task>? = null) {
-    schedule?.data?.status?.let { status ->
-        val color = Status
-            .entries
-            .firstOrNull { status == it.label }
-            ?.color
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .clip(CircleShape)
-                .background(color = color ?: light)
-        )
-    }
-}
 
 @Composable
 private fun StatusLegend(modifier: Modifier) {
@@ -341,14 +436,15 @@ private fun StatusLegend(modifier: Modifier) {
             if (expanded) {
                 LazyRow {
                     val entries = Status.entries
-                    items(count = entries.size + 1) {
-                        if (it < entries.size)
+                    items(count = entries.size + 2) {
+                        if (it < entries.size) {
                             StatusKeyIndicator(
                                 entries[it].label,
                                 entries[it].color
                             )
-                        else
+                        } else {
                             StatusKeyIndicator()
+                        }
                     }
                 }
             }
@@ -381,38 +477,12 @@ private fun StatusKeyIndicator(label: String = "Unspecified", color: Color = lig
     }
 }
 
-private fun getSchedules(tasks: Tasks?): List<CalendarEvent<Task>>? = tasks
-    ?.tasks
-    ?.filter { task -> task.dueDateTime.isNotBlank() }
-    ?.map { task ->
-        CalendarEvent(
-            data = task,
-            date = LocalDateTime.parse(task.dueDateTime).toLocalDate()
-        )
-    }
-    ?.toList()
-    ?.sortedBy { it.date }
-
-private fun getInitialCalendarDate(
-    id: Long?,
-    calendarEvents: List<CalendarEvent<Task>>?
-): LocalDate {
-// Extract tasks from the schedules:
-    val tasks = calendarEvents?.map { event -> event.data }
-        ?.filter { it?.dueDateTime?.isNotBlank() == true }
-        ?.toList()
-    Log.d("getInitialCalendarDate():", "$tasks")
-// Transform tasks to date string:
-    val dateString = tasks?.firstOrNull { it?.id == id }?.dueDateTime
-
-// Parse date string to date:
-    var date: LocalDate? = null
-    try {
-        date = LocalDateTime.parse(dateString).toLocalDate()
-        Log.d("getInitialCalendarDate():", "$date")
-    } catch (e: Exception) {
-        Log.d("getInitialCalendarDate():", "${e.message}")
-    }
-    return date ?: calendarEvents?.get(0)?.date!!
-}
+private fun getProcessedTaskSchedules(tasks: Tasks?): List<Task>? =
+    tasks
+        ?.tasks
+        ?.filter { it.dueDateTime.isNotBlank() }
+        ?.map {
+            Task(it)
+        }
+        ?.sortedBy { it.dueDateTime }
 

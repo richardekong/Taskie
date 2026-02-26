@@ -8,14 +8,13 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.12.0"
 composeBom = "2024.09.00"
-foundation = "1.9.5"
 navigationCompose = "2.7.7"
 squareupRetrofit = "2.11.0"
 squareupOkhttp3LoggingInterceptor = "4.12.0"
 daggerHiltAndroid = "2.57.2"
 hiltNavigationComposeVersion = "1.2.0"
-foundationVersion = "1.10.0"
 composeCalendar="3.1.0"
+kizitonwoseCalendar="2.6.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,7 +31,7 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
-androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation"}
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 retrofit = {module = "com.squareup.retrofit2:retrofit", version.ref = "squareupRetrofit"}
 retrofit-gson = {module ="com.squareup.retrofit2:converter-gson", version.ref = "squareupRetrofit"}
@@ -40,8 +39,9 @@ squareup-okhttp3-logging-interceptor = {module ="com.squareup.okhttp3:logging-in
 dagger-hilt-android = {module="com.google.dagger:hilt-android", version.ref="daggerHiltAndroid"}
 dagger-hilt-compiler ={module="com.google.dagger:hilt-compiler", version.ref="daggerHiltAndroid"}
 hilt-navigation-compose = {module="androidx.hilt:hilt-navigation-compose", version.ref="hiltNavigationComposeVersion"}
-androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
 compose-calendar = {module = "com.github.jimmyplazas:compose-calendar", version.ref = "composeCalendar"}
+kizitonwose-calendar = {module = "com.kizitonwose.calendar:compose", version.ref="kizitonwoseCalendar"}
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

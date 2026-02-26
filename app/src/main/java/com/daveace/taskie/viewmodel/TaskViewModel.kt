@@ -19,7 +19,7 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
-class TaskViewModel @Inject constructor(private val taskRepository: TaskRepository) : ViewModel() {
+open class TaskViewModel @Inject constructor(private val taskRepository: TaskRepository) : ViewModel() {
 
     var title by mutableStateOf("")
         private set
