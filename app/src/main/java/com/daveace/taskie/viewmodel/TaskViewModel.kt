@@ -7,19 +7,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daveace.taskie.api.model.Task
 import com.daveace.taskie.api.model.Tasks
-import com.daveace.taskie.repository.TaskRepository
 import com.daveace.taskie.state.UIState
+import com.daveace.taskie.usecase.TaskUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
-open class TaskViewModel @Inject constructor(private val taskRepository: TaskRepository) : ViewModel() {
+open class TaskViewModel @Inject constructor(
+    private val taskUseCases: TaskUseCases
+) : ViewModel() {
 
     var title by mutableStateOf("")
         private set
@@ -65,7 +66,7 @@ open class TaskViewModel @Inject constructor(private val taskRepository: TaskRep
     fun createTask(task: Task) {
         viewModelScope.launch {
             _createdTaskState.value = UIState.Idle
-            taskRepository.createTask(task)
+            taskUseCases.createTaskUseCase(task)
                 .onSuccess {
                     _createdTaskState.value = UIState.Success(it)
                     readTasks()
@@ -80,9 +81,9 @@ open class TaskViewModel @Inject constructor(private val taskRepository: TaskRep
         viewModelScope.launch {
             _fetchedTasksState.value = UIState.Loading
             val results: Result<Tasks?> = if (params.isEmpty()) {
-                taskRepository.readTasks()
+                taskUseCases.readTasksUseCase()
             } else {
-                taskRepository.readTasks(params)
+                taskUseCases.readTasksByParamUseCase(params)
             }
             results.onSuccess { tasks ->
                 _fetchedTasksState.value = UIState.Success(tasks)
@@ -96,7 +97,7 @@ open class TaskViewModel @Inject constructor(private val taskRepository: TaskRep
     fun readTaskById(id: Long) {
         viewModelScope.launch {
             _fetchedTaskState.value = UIState.Loading
-            taskRepository.readTaskById(id)
+            taskUseCases.readTaskByIdUseCase(id)
                 .onSuccess { task ->
                     _fetchedTaskState.value = UIState.Success(task)
                 }
@@ -110,7 +111,7 @@ open class TaskViewModel @Inject constructor(private val taskRepository: TaskRep
     fun readTasksByTitle(title: String) {
         viewModelScope.launch {
             _fetchedTasksState.value = UIState.Loading
-            taskRepository.readTasksByTitle(title)
+            taskUseCases.readTasksByTitleUseCase(title)
                 .onSuccess { tasks ->
                     _fetchedTasksState.value = UIState.Success(tasks)
                 }
@@ -124,7 +125,7 @@ open class TaskViewModel @Inject constructor(private val taskRepository: TaskRep
     fun readTasksByStatus(status: String) {
         viewModelScope.launch {
             _fetchedTasksState.value = UIState.Loading
-            taskRepository.readTasksByStatus(status)
+            taskUseCases.readTasksByStatusUseCase(status)
                 .onSuccess { tasks ->
                     _fetchedTasksState.value = UIState.Success(tasks)
                 }
@@ -138,7 +139,7 @@ open class TaskViewModel @Inject constructor(private val taskRepository: TaskRep
     fun updateTask(id: Long, task: Task) {
         viewModelScope.launch {
             _updatedTaskState.value = UIState.Idle
-            taskRepository.updateTask(id, task)
+            taskUseCases.updateTaskUseCase(id, task)
                 .onSuccess {
                     _updatedTaskState.value = UIState.Success(it)
                     readTasks()
@@ -152,7 +153,7 @@ open class TaskViewModel @Inject constructor(private val taskRepository: TaskRep
     fun deleteTask(id: Long) {
         viewModelScope.launch {
             _deletedTaskState.value = UIState.Idle
-            taskRepository.deleteTask(id)
+            taskUseCases.deleteTaskUseCase(id)
                 .onSuccess {
                     _deletedTaskState.value = UIState.Success(it)
                     readTasks()

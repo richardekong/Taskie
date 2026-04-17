@@ -212,7 +212,7 @@ private fun TaskSchedules(
                     day = day,
                     tasksForTheDay = tasks,
                     foundDate = foundDate,
-                    onCalendarDayItemClick = onCalendarDayItemClick
+                    onCalendarDayEntryClick = onCalendarDayItemClick
                 )
             }
         )
@@ -224,12 +224,12 @@ private fun CalendarDayContent(
     day: CalendarDay,
     tasksForTheDay: List<Task>?,
     foundDate: LocalDate? = null,
-    onCalendarDayItemClick: (CalendarDay, List<Task>) -> Unit = { _, _ -> },
+    onCalendarDayEntryClick: (CalendarDay, List<Task>) -> Unit = { _, _ -> },
 ) {
     if (tasksForTheDay == null) {
         CalendarDayContentWithoutTasks(day)
     } else {
-        CalendarDayContentWithTasks(day, tasksForTheDay, foundDate, onCalendarDayItemClick)
+        CalendarDayContentWithTasks(day, tasksForTheDay, foundDate, onCalendarDayEntryClick)
     }
 }
 
@@ -238,7 +238,7 @@ private fun CalendarDayContentWithTasks(
     day: CalendarDay,
     tasksForTheDay: List<Task>,
     foundDate: LocalDate? = null,
-    onCalendarDayItemClick: (CalendarDay, List<Task>) -> Unit = { _, _ -> },
+    onCalendarDayEntryClick: (CalendarDay, List<Task>) -> Unit = { _, _ -> },
 ) {
 
     val isSearchTaskConfirmed = foundDate?.isEqual(day.date) == true
@@ -252,7 +252,7 @@ private fun CalendarDayContentWithTasks(
                 shape = RoundedCornerShape(4.dp)
             )
             .clickable {
-                onCalendarDayItemClick.invoke(day, tasksForTheDay)
+                onCalendarDayEntryClick.invoke(day, tasksForTheDay)
             },
         contentAlignment = Alignment.Center
     ) {
